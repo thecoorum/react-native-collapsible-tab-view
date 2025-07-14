@@ -49,7 +49,6 @@
     "@commitlint/config-conventional": "^19.1.0",
     "@microsoft/tsdoc": "^0.14.2",
     "@release-it/conventional-changelog": "^8.0.1",
-    "@shopify/flash-list": "^1.6.4",
     "@types/react": "~18.2.74",
     "@types/react-native": "0.73.0",
     "babel-jest": "^29.7.0",
@@ -75,16 +74,10 @@
     "typescript": "^5.4.3"
   },
   "peerDependencies": {
-    "@shopify/flash-list": ">=1.0.0",
     "react": "*",
     "react-native": "*",
     "react-native-pager-view": "*",
     "react-native-reanimated": ">=3.8.1"
-  },
-  "peerDependenciesMeta": {
-    "@shopify/flash-list": {
-      "optional": true
-    }
   },
   "jest": {
     "preset": "react-native",
