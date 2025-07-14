@@ -1,7 +1,5 @@
-import type {
-  FlashListProps,
-  FlashList as SPFlashList,
-} from '@shopify/flash-list'
+// @ts-ignore
+import type { FlashListProps } from '@shopify/flash-list'
 import React, { useCallback } from 'react'
 import Animated, {
   useSharedValue,
@@ -24,7 +22,6 @@ import {
  */
 
 type FlashListMemoProps = React.PropsWithChildren<FlashListProps<unknown>>
-type FlashListMemoRef = SPFlashList<any>
 
 let AnimatedFlashList: React.ComponentClass<FlashListProps<any>> | null = null
 
@@ -46,7 +43,7 @@ const ensureFlastList = () => {
 }
 
 const FlashListMemo = React.memo(
-  React.forwardRef<FlashListMemoRef, FlashListMemoProps>((props, passRef) => {
+  React.forwardRef<React.FC, FlashListMemoProps>((props, passRef) => {
     ensureFlastList()
     return AnimatedFlashList ? (
       <AnimatedFlashList ref={passRef} {...props} />
@@ -64,7 +61,7 @@ function FlashListImpl<R>(
     contentContainerStyle: _contentContainerStyle,
     ...rest
   }: Omit<FlashListProps<R>, 'onScroll'>,
-  passRef: React.Ref<SPFlashList<any>>
+  passRef: React.Ref<React.FC>
 ) {
   const name = useTabNameContext()
   const { setRef, contentInset } = useTabsContext()
@@ -136,11 +133,12 @@ function FlashListImpl<R>(
   )
 
   const refWorkaround = useCallback(
-    (value: FlashListMemoRef | null): void => {
+    (value: React.FC | null): void => {
       // https://github.com/Shopify/flash-list/blob/2d31530ed447a314ec5429754c7ce88dad8fd087/src/FlashList.tsx#L829
       // We are not accessing the right element or view of the Flashlist (recyclerlistview). So we need to give
       // this ref the access to it
       // eslint-ignore
+      // @ts-ignore
       ;(recyclerRef as any)(value?.recyclerlistview_unsafe)
       ;(ref as any)(value)
     },
@@ -148,7 +146,6 @@ function FlashListImpl<R>(
   )
 
   return (
-    // @ts-expect-error typescript complains about `unknown` in the memo, it should be T
     <FlashListMemo
       {...rest}
       onLoad={onLoad}
@@ -171,5 +168,5 @@ function FlashListImpl<R>(
  * Use like a regular FlashList.
  */
 export const FlashList = React.forwardRef(FlashListImpl) as <T>(
-  p: FlashListProps<T> & { ref?: React.Ref<SPFlashList<T>> }
+  p: FlashListProps<T> & { ref?: React.Ref<React.FC> }
 ) => React.ReactElement
