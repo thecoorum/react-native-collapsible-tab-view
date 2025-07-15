@@ -1,5 +1,8 @@
-// @ts-ignore
-import type { FlashListProps } from '@shopify/flash-list'
+import type {
+  FlashList as SPFlashList,
+  FlashListProps,
+  // @ts-ignore
+} from '@shopify/flash-list'
 import React, { useCallback } from 'react'
 import Animated, {
   useSharedValue,
@@ -22,6 +25,7 @@ import {
  */
 
 type FlashListMemoProps = React.PropsWithChildren<FlashListProps<unknown>>
+type FlashListMemoRef = SPFlashList<any>
 
 let AnimatedFlashList: React.ComponentClass<FlashListProps<any>> | null = null
 
@@ -43,7 +47,7 @@ const ensureFlastList = () => {
 }
 
 const FlashListMemo = React.memo(
-  React.forwardRef<React.FC, FlashListMemoProps>((props, passRef) => {
+  React.forwardRef<FlashListMemoRef, FlashListMemoProps>((props, passRef) => {
     ensureFlastList()
     return AnimatedFlashList ? (
       <AnimatedFlashList ref={passRef} {...props} />
@@ -61,7 +65,7 @@ function FlashListImpl<R>(
     contentContainerStyle: _contentContainerStyle,
     ...rest
   }: Omit<FlashListProps<R>, 'onScroll'>,
-  passRef: React.Ref<React.FC>
+  passRef: React.Ref<SPFlashList<any>>
 ) {
   const name = useTabNameContext()
   const { setRef, contentInset } = useTabsContext()
@@ -133,7 +137,7 @@ function FlashListImpl<R>(
   )
 
   const refWorkaround = useCallback(
-    (value: React.FC | null): void => {
+    (value: FlashListMemoRef | null): void => {
       // https://github.com/Shopify/flash-list/blob/2d31530ed447a314ec5429754c7ce88dad8fd087/src/FlashList.tsx#L829
       // We are not accessing the right element or view of the Flashlist (recyclerlistview). So we need to give
       // this ref the access to it
@@ -168,5 +172,5 @@ function FlashListImpl<R>(
  * Use like a regular FlashList.
  */
 export const FlashList = React.forwardRef(FlashListImpl) as <T>(
-  p: FlashListProps<T> & { ref?: React.Ref<React.FC> }
+  p: FlashListProps<T> & { ref?: React.Ref<SPFlashList<T>> }
 ) => React.ReactElement
