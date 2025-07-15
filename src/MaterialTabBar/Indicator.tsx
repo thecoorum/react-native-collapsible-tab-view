@@ -55,7 +55,7 @@ const Indicator: React.FC<IndicatorProps> = ({
 
   React.useEffect(() => {
     if (fadeIn) {
-      opacity.value = 1
+      opacity.set(1)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fadeIn])

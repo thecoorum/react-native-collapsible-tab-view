@@ -150,9 +150,8 @@ export const Container = React.memo(
 
       const afterRender = useSharedValue(0)
       React.useEffect(() => {
-        afterRender.value = withDelay(
-          ONE_FRAME_MS * 5,
-          withTiming(1, { duration: 0 })
+        afterRender.set(
+          withDelay(ONE_FRAME_MS * 5, withTiming(1, { duration: 0 }))
         )
       }, [afterRender, tabNamesArray])
 
@@ -175,7 +174,7 @@ export const Container = React.memo(
         },
         (trigger) => {
           if (trigger) {
-            afterRender.value = 0
+            afterRender.set(0)
             resyncTabScroll()
           }
         },
@@ -194,7 +193,7 @@ export const Container = React.memo(
         },
         (nextIndex) => {
           if (nextIndex !== null && nextIndex !== index.value) {
-            calculateNextOffset.value = nextIndex
+            calculateNextOffset.set(nextIndex)
           }
         },
         []
@@ -229,7 +228,10 @@ export const Container = React.memo(
       const toggleSyncScrollFrame = (toggle: boolean) =>
         syncScrollFrame.setActive(toggle)
       const syncScrollFrame = useFrameCallback(({ timeSinceFirstFrame }) => {
-        syncCurrentTabScrollPosition()
+        if (timeSinceFirstFrame % 100 === 0) {
+          syncCurrentTabScrollPosition()
+        }
+
         if (timeSinceFirstFrame > 1500) {
           runOnJS(toggleSyncScrollFrame)(false)
         }
@@ -251,7 +253,7 @@ export const Container = React.memo(
               prevTabName: tabNames.value[index.value],
               tabName: tabNames.value[i],
             })
-            index.value = i
+            index.set(i)
             if (
               typeof scrollY.value[tabNames.value[index.value]] === 'number'
             ) {
@@ -322,7 +324,7 @@ export const Container = React.memo(
       const pageScrollHandler = usePageScrollHandler({
         onPageScroll: (e) => {
           'worklet'
-          indexDecimal.value = e.position + e.offset
+          indexDecimal.set(e.position + e.offset)
         },
       })
 

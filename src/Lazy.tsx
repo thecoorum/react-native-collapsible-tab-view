@@ -89,7 +89,7 @@ export const Lazy: React.FC<{
     (focused, wasFocused) => {
       if (focused && !wasFocused && !canMount) {
         if (cancelLazyFadeIn) {
-          opacity.value = 1
+          opacity.set(1)
           runOnJS(setCanMount)(true)
         } else {
           runOnJS(startMountTimer)(focusedTab.value)
@@ -110,7 +110,7 @@ export const Lazy: React.FC<{
     (isMounted, wasMounted) => {
       if (isMounted && !wasMounted) {
         if (!cancelLazyFadeIn && opacity.value !== 1) {
-          opacity.value = withTiming(1)
+          opacity.set(withTiming(1))
         }
       }
     },
@@ -124,7 +124,7 @@ export const Lazy: React.FC<{
   }, [opacity])
 
   const onLayout = useCallback(() => {
-    didTriggerLayout.value = true
+    didTriggerLayout.set(true)
   }, [didTriggerLayout])
 
   return canMount ? (

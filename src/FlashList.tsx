@@ -73,7 +73,7 @@ function FlashListImpl<R>(
   const hadLoad = useSharedValue(false)
 
   const onLoad = useCallback(() => {
-    hadLoad.value = true
+    hadLoad.set(true)
   }, [hadLoad])
 
   useAnimatedReaction(

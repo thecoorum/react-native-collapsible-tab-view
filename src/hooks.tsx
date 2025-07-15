@@ -187,8 +187,14 @@ export function useUpdateScrollViewContentSize({ name }: { name: TabName }) {
     (name: TabName, height: number) => {
       'worklet'
       const tabIndex = tabNames.value.indexOf(name)
-      contentHeights.value[tabIndex] = height
-      contentHeights.value = [...contentHeights.value]
+
+      contentHeights.modify((heights) => {
+        'worklet'
+
+        heights[tabIndex] = height
+
+        return heights
+      })
     },
     [contentHeights, tabNames]
   )
@@ -278,7 +284,7 @@ export const useScrollHandlerY = (name: TabName) => {
   const enable = useCallback(
     (toggle: boolean) => {
       'worklet'
-      enabled.value = toggle
+      enabled.set(toggle)
     },
     [name, refMap, scrollTo]
   )
@@ -318,19 +324,19 @@ export const useScrollHandlerY = (name: TabName) => {
               headerScrollDistance.value * snapThreshold
             ) {
               // snap down
-              accDiffClamp.value = withTiming(0)
+              accDiffClamp.set(withTiming(0))
             } else if (accDiffClamp.value < headerScrollDistance.value) {
               // snap up
-              accDiffClamp.value = withTiming(headerScrollDistance.value)
+              accDiffClamp.set(withTiming(headerScrollDistance.value))
 
               if (scrollYCurrent.value < headerScrollDistance.value) {
-                scrollAnimation.value = scrollYCurrent.value
-                scrollAnimation.value = withTiming(headerScrollDistance.value)
+                scrollAnimation.set(scrollYCurrent.value)
+                scrollAnimation.set(withTiming(headerScrollDistance.value))
                 //console.log('[${name}] sticky snap up')
               }
             }
           } else {
-            accDiffClamp.value = withTiming(0)
+            accDiffClamp.set(withTiming(0))
           }
         }
       } else {
@@ -339,15 +345,15 @@ export const useScrollHandlerY = (name: TabName) => {
           headerScrollDistance.value * snapThreshold
         ) {
           // snap down
-          snappingTo.value = 0
-          scrollAnimation.value = scrollYCurrent.value
-          scrollAnimation.value = withTiming(0)
+          snappingTo.set(0)
+          scrollAnimation.set(scrollYCurrent.value)
+          scrollAnimation.set(withTiming(0))
           //console.log('[${name}] snap down')
         } else if (scrollYCurrent.value <= headerScrollDistance.value) {
           // snap up
-          snappingTo.value = headerScrollDistance.value
-          scrollAnimation.value = scrollYCurrent.value
-          scrollAnimation.value = withTiming(headerScrollDistance.value)
+          snappingTo.set(headerScrollDistance.value)
+          scrollAnimation.set(scrollYCurrent.value)
+          scrollAnimation.set(withTiming(headerScrollDistance.value))
           //console.log('[${name}] snap up')
         }
       }
@@ -372,35 +378,45 @@ export const useScrollHandlerY = (name: TabName) => {
             const clampMax =
               contentHeight - (containerHeight || 0) + contentInset
             // make sure the y value is clamped to the scrollable size (clamps overscrolling)
-            scrollYCurrent.value = allowHeaderOverscroll
-              ? y
-              : interpolate(
-                  y,
-                  [0, clampMax],
-                  [0, clampMax],
-                  Extrapolation.CLAMP
-                )
+            scrollYCurrent.set(
+              allowHeaderOverscroll
+                ? y
+                : interpolate(
+                    y,
+                    [0, clampMax],
+                    [0, clampMax],
+                    Extrapolation.CLAMP
+                  )
+            )
           } else {
             const { y } = event.contentOffset
-            scrollYCurrent.value = y
+
+            scrollYCurrent.set(y)
           }
 
-          scrollY.value[name] = scrollYCurrent.value
-          oldAccScrollY.value = accScrollY.value
-          accScrollY.value = scrollY.value[name] + offset.value
+          // scrollY.value[name] = scrollYCurrent.value
+          scrollY.modify((scrollY) => {
+            'worklet'
+
+            // Fix: Type 'T' is generic and can only be indexed for reading.
+            // Instead, return a new object with the updated value.
+            return {
+              ...scrollY,
+              [name]: scrollYCurrent.value,
+            }
+          })
+          oldAccScrollY.set(accScrollY.value)
+          accScrollY.set(scrollY.value[name] + offset.value)
 
           if (revealHeaderOnScroll) {
             const delta = accScrollY.value - oldAccScrollY.value
             const nextValue = accDiffClamp.value + delta
             if (delta > 0) {
               // scrolling down
-              accDiffClamp.value = Math.min(
-                headerScrollDistance.value,
-                nextValue
-              )
+              accDiffClamp.set(Math.min(headerScrollDistance.value, nextValue))
             } else if (delta < 0) {
               // scrolling up
-              accDiffClamp.value = Math.max(0, nextValue)
+              accDiffClamp.set(Math.max(0, nextValue))
             }
           }
         }
@@ -418,16 +434,18 @@ export const useScrollHandlerY = (name: TabName) => {
 
         if (IS_IOS) {
           // we delay this by one frame so that onMomentumBegin may fire on iOS
-          afterDrag.value = withDelay(
-            ONE_FRAME_MS,
-            withTiming(0, { duration: 0 }, (isFinished) => {
-              // if the animation is finished, the onMomentumBegin has
-              // never started, so we need to manually trigger the onMomentumEnd
-              // to make sure we snap
-              if (isFinished) {
-                onMomentumEnd()
-              }
-            })
+          afterDrag.set(
+            withDelay(
+              ONE_FRAME_MS,
+              withTiming(0, { duration: 0 }, (isFinished) => {
+                // if the animation is finished, the onMomentumBegin has
+                // never started, so we need to manually trigger the onMomentumEnd
+                // to make sure we snap
+                if (isFinished) {
+                  onMomentumEnd()
+                }
+              })
+            )
           )
         }
       },
@@ -566,7 +584,7 @@ export function useAfterMountEffect(
   const onLayoutOut: NonNullable<ViewProps['onLayout']> = useCallback(
     (event: LayoutChangeEvent) => {
       requestAnimationFrame(() => {
-        didMount.value = true
+        didMount.set(true)
       })
       return nextOnLayout?.(event)
     },

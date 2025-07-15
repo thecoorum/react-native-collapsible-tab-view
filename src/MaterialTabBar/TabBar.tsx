@@ -124,14 +124,14 @@ const MaterialTabBar = <T extends TabName = TabName>({
   const onScroll = useAnimatedScrollHandler(
     {
       onScroll: (event) => {
-        tabsOffset.value = event.contentOffset.x
+        tabsOffset.set(event.contentOffset.x)
       },
       onBeginDrag: () => {
-        isScrolling.value = true
-        cancelNextScrollSync.value = index.value
+        isScrolling.set(true)
+        cancelNextScrollSync.set(index.value)
       },
       onMomentumEnd: () => {
-        isScrolling.value = false
+        isScrolling.set(false)
       },
     },
     []
@@ -147,8 +147,8 @@ const MaterialTabBar = <T extends TabName = TabName>({
     (nextIndex) => {
       if (scrollEnabled) {
         cancelAnimation(currentIndexToSync)
-        targetIndexToSync.value = nextIndex
-        currentIndexToSync.value = withTiming(nextIndex)
+        targetIndexToSync.set(nextIndex)
+        currentIndexToSync.set(withTiming(nextIndex))
       }
     },
     [scrollEnabled]
